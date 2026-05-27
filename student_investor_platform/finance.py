@@ -7,12 +7,36 @@ def get_stock_info(ticker):
     t = yf.Ticker(ticker)
     hist = t.history(period='5d')
     price = None
-    try:
+    change = None
+    if not hist.empty:
         price = hist['Close'].iloc[-1]
-    except Exception:
-        price = None
-    info = {"ticker": ticker, "last_price": price}
+        if len(hist) >= 2:
+            change = price - hist['Close'].iloc[-2]
+    info = {
+        "ticker": ticker,
+        "last_price": price,
+        "daily_change": change,
+        "history_rows": len(hist),
+    }
     return info
+
+
+def get_stock_summary(ticker):
+    t = yf.Ticker(ticker)
+    info = t.info or {}
+    summary = {
+        "ticker": ticker,
+        "name": info.get("shortName") or info.get("longName"),
+        "sector": info.get("sector"),
+        "industry": info.get("industry"),
+        "market_cap": info.get("marketCap"),
+        "pe_ratio": info.get("trailingPE"),
+        "forward_pe": info.get("forwardPE"),
+        "dividend_yield": info.get("dividendYield"),
+        "beta": info.get("beta"),
+        "current_price": info.get("regularMarketPrice"),
+    }
+    return summary
 
 
 def plot_stock_history(ticker, period='1y'):
